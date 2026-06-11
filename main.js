@@ -92,7 +92,8 @@ if (args) {
             if (server.getHostname()) {
                 logger.info(`Starting virtual onvif server for ${onvifConfig.name} on ${server.getHostname()}:${onvifConfig.ports.server} ...`);
                 server.startServer();
-                server.startDiscovery();
+                if (onvifConfig.mac)
+                    server.startDiscovery();
                 if (args.debug)
                     server.enableDebugOutput();
                 logger.info('  Started!');
@@ -100,13 +101,16 @@ if (args) {
 
                 if (!proxies[onvifConfig.target.hostname])
                     proxies[onvifConfig.target.hostname] = {}
-                
+
                 if (onvifConfig.ports.rtsp && onvifConfig.target.ports.rtsp)
                     proxies[onvifConfig.target.hostname][onvifConfig.ports.rtsp] = onvifConfig.target.ports.rtsp;
                 if (onvifConfig.ports.snapshot && onvifConfig.target.ports.snapshot)
                     proxies[onvifConfig.target.hostname][onvifConfig.ports.snapshot] = onvifConfig.target.ports.snapshot;
             } else {
-                logger.error(`Failed to find IP address for MAC address ${onvifConfig.mac}`)
+                if (onvifConfig.mac)
+                    logger.error(`Failed to find IP address for MAC address ${onvifConfig.mac}`)
+                else
+                    logger.error(`No hostname or valid mac address configured for ${onvifConfig.name || 'unnamed device'}`)
                 return -1;
             }
         }
