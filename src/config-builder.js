@@ -82,8 +82,7 @@ async function createConfig(hostname, username, password) {
         }
 
         let cameraConfig = {
-            hostname: '<ONVIF PROXY HOSTNAME/IP HERE>',
-            mac: '<ONVIF PROXY MAC ADDRESS HERE (optional if hostname is set)>',
+            mac: '<ONVIF PROXY MAC ADDRESS HERE>',
             ports: {
                 server: serverPort,
                 rtsp: 8554,
