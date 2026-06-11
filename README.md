@@ -140,6 +140,50 @@ docker run --rm -it --entrypoint /bin/sh ghcr.io/daniela-hase/onvif-server:lates
 node main.js --create-config
 ```
 
+## Docker without Host Networking
+When running in a standard Docker container (not using `--network host`), the container will not have access to the host's physical network interfaces. In this case, use the `hostname` field in your config instead of `mac` to specify the IP address or hostname that clients should use to reach this server. You should also set `bind: 0.0.0.0` so the server listens on all container interfaces.
+
+When `hostname` is set, multicast/broadcast discovery is automatically disabled since it requires binding to a physical interface. Clients will need to connect to the server directly using the configured hostname and port.
+
+Example `config.yaml` for Docker without host networking:
+```yaml
+onvif:
+  - hostname: 192.168.1.100                        # The IP/hostname clients use to reach this server
+    bind: 0.0.0.0                                  # Listen on all interfaces inside the container
+    ports:
+      server: 8081
+      rtsp: 8554
+    name: MyRTSPStream
+    uuid: 1714a629-ebe5-4bb8-a430-c18ffd8fa5f6
+    highQuality:
+      rtsp: /cam/stream
+      width: 1920
+      height: 1080
+      framerate: 30
+      bitrate: 1024
+      quality: 4
+    lowQuality:
+      rtsp: /cam/stream
+      width: 1920
+      height: 1080
+      framerate: 30
+      bitrate: 1024
+      quality: 1
+    target:
+      hostname: 192.168.1.32
+      ports:
+        rtsp: 554
+```
+
+Run the container and expose the necessary ports:
+```bash
+docker run --rm -it \
+  -v /path/to/my/config.yaml:/onvif.yaml \
+  -p 8081:8081 \
+  -p 8554:8554 \
+  ghcr.io/daniela-hase/onvif-server:latest
+```
+
 # Wrapping an RTSP Stream
 This tool can also be used to create Onvif devices from regular RTSP streams by creating the configuration manually.
 
@@ -164,6 +208,8 @@ Let's assume the resolution is 1920x1080 with 30 fps and a bitrate of 1024 kb/s,
 ```yaml
 onvif:
   - mac: a2:a2:a2:a2:a2:a1                        # The MAC address for the server to run on
+    # hostname: 192.168.1.100                      # Alternative: set the IP/hostname directly (no MAC lookup)
+    # bind: 0.0.0.0                                # Optional: address to listen on (defaults to hostname)
     ports:
       server: 8081                                # The port for the server to run on
       rtsp: 8554                                  # The port for the stream passthrough, leave this at 8554

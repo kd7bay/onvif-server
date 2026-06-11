@@ -31,7 +31,7 @@ class OnvifServer {
         this.config = config;
         this.logger = logger;
 
-        if (!this.config.hostname)
+        if (!this.config.hostname && this.config.mac)
             this.config.hostname = getIpAddressFromMac(this.config.mac);
 
         this.videoSource = {
@@ -348,7 +348,8 @@ class OnvifServer {
     startServer() {
         this.server = http.createServer(this.listen);
 
-        this.server.listen(this.config.ports.server, this.config.hostname);
+        let listenAddress = this.config.bind || this.config.hostname;
+        this.server.listen(this.config.ports.server, listenAddress);
 
         this.deviceService = soap.listen(this.server, {
             path: '/onvif/device_service', 
